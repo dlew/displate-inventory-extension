@@ -1,0 +1,21 @@
+{
+  "name": "Better Inventory For Displate",
+  "description": "Improves information/display for Displate limited editions",
+  "icons": { 
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "version": "1.0",
+  "manifest_version": 3,
+  "content_scripts": [
+    {
+      "matches": [ 
+        "https://displate.com/limited-edition/*"
+      ],
+      "js": [
+        "content-script.js"
+      ]
+    }
+  ]
+}
