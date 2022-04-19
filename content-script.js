@@ -39,13 +39,16 @@ let addInventoryDataToProductBox = function(productBox, data) {
   let title = productBox.querySelector("h3").innerText
   let productData = data.data.find(element => element.title == title)
 
-  let rule = productBox.querySelector("hr")
+  let pulsometer = productBox.querySelector(".editions__pulsometer")
 
   let nameText = document.createElement("h4")
-  nameText.className = "text--center mt--15"
+  nameText.className = "mb--15"
   nameText.innerText = formatAvailability(productData)
 
-  productBox.insertBefore(nameText, rule)
+  productBox.insertBefore(nameText, pulsometer)
+
+  // Remove extra padding from name
+  productBox.querySelector("h3").classList.remove("mb--15")
 }
 
 let queryLimitedEditionData = function() {
