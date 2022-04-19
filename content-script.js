@@ -18,7 +18,12 @@ let loadAndShowLimitedEditionData = function () {
         // Find the product box and add to that
         let productBox = document.querySelector(".product-page__product-box")
         if (productBox != null) {
-          addInventoryDataToProductBox(productBox, data)
+          if (!productBox.classList.contains("added-inv-data")) {
+            addInventoryDataToProductBox(productBox, data)
+
+            // Make sure we don't double-add data
+            productBox.classList.add("added-inv-data")
+          }
         }
 
         // Find tiles and add to them
