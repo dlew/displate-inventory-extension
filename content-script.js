@@ -85,6 +85,9 @@ let reformatTile = function(tile, tileData) {
     tile["style"] = "pointer-events: auto"
     // Need this to avoid router hijacking
     tile.onclick = function() { window.open(tile.href) }
+
+    // Remove bottom padding (looks better with inventory data)
+    tile.querySelector("h5").parentNode.classList.remove("mb--15")
   }
   if (tile.classList.contains("displate-tile--limited-soldout")) {
     // Remove sold out class
@@ -92,7 +95,7 @@ let reformatTile = function(tile, tileData) {
 
     // Re-add name
     let nameDiv = document.createElement("div")
-    nameDiv.className = "text--center mt--20 mb--15"
+    nameDiv.className = "text--center mt--20"
 
     let limitedEditionText = document.createElement("p")
     limitedEditionText.className = "text text--small text--bold"
@@ -117,7 +120,8 @@ let addInventoryDataToTile = function(tile, tileData) {
     div.classList.add("mt--20")
   }
 
-  let p = document.createElement("h5")
+  let p = document.createElement("p")
+  p.className = "text--small text--bold"
   p.innerText = formatAvailability(tileData)
 
   div.appendChild(p)
