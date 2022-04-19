@@ -18,7 +18,12 @@ let loadAndShowLimitedEditionData = function () {
         // Find the product box and add to that
         let productBox = document.querySelector(".product-page__product-box")
         if (productBox != null) {
-          addInventoryDataToProductBox(productBox, data)
+          if (!productBox.classList.contains("added-inv-data")) {
+            addInventoryDataToProductBox(productBox, data)
+
+            // Make sure we don't double-add data
+            productBox.classList.add("added-inv-data")
+          }
         }
 
         // Find tiles and add to them
@@ -39,13 +44,16 @@ let addInventoryDataToProductBox = function(productBox, data) {
   let title = productBox.querySelector("h3").innerText
   let productData = data.data.find(element => element.title == title)
 
-  let rule = productBox.querySelector("hr")
+  let pulsometer = productBox.querySelector(".editions__pulsometer")
 
   let nameText = document.createElement("h4")
-  nameText.className = "text--center mt--15"
+  nameText.className = "mb--15"
   nameText.innerText = formatAvailability(productData)
 
-  productBox.insertBefore(nameText, rule)
+  productBox.insertBefore(nameText, pulsometer)
+
+  // Remove extra padding from name
+  productBox.querySelector("h3").classList.remove("mb--15")
 }
 
 let queryLimitedEditionData = function() {
@@ -77,6 +85,11 @@ let findLimitedEditionDataForTile = function(data, tile) {
   }
 }
 
+let removeTileBottomPadding = function(tile) {
+  // Remove bottom padding (looks better with inventory data)
+  tile.querySelector("h5").parentNode.classList.remove("mb--15")
+}
+
 // Makes sold out tiles prettier (IMO)
 let reformatTile = function(tile, tileData) {
   if (tile.classList.contains("displate-tile--limited-upcoming")) {
@@ -85,6 +98,8 @@ let reformatTile = function(tile, tileData) {
     tile["style"] = "pointer-events: auto"
     // Need this to avoid router hijacking
     tile.onclick = function() { window.open(tile.href) }
+
+    removeTileBottomPadding(tile)
   }
   if (tile.classList.contains("displate-tile--limited-soldout")) {
     // Remove sold out class
@@ -92,7 +107,7 @@ let reformatTile = function(tile, tileData) {
 
     // Re-add name
     let nameDiv = document.createElement("div")
-    nameDiv.className = "text--center mt--20 mb--15"
+    nameDiv.className = "text--center mt--20"
 
     let limitedEditionText = document.createElement("p")
     limitedEditionText.className = "text text--small text--bold"
@@ -106,22 +121,30 @@ let reformatTile = function(tile, tileData) {
     nameDiv.appendChild(titleText)
     tile.appendChild(nameDiv)
   }
+  else {
+    removeTileBottomPadding(tile)
+  }
 }
 
 let addInventoryDataToTile = function(tile, tileData) {
   let div = document.createElement("div")
   div.classList.add("text--center")
 
-  // Need a bit of extra padding on available LEs
-  if (tile.querySelector(".editions__pulsometer") != null) {
-    div.classList.add("mt--20")
-  }
-
-  let p = document.createElement("h5")
+  let p = document.createElement("p")
+  p.className = "text--small text--bold"
   p.innerText = formatAvailability(tileData)
 
   div.appendChild(p)
-  tile.appendChild(div)
+
+  // Insert before pulsometer (if present), otherwise just append to end
+  let pulsometer = tile.querySelector(".editions__pulsometer")
+  if (pulsometer != null) {
+    div.classList.add("mb--15")
+    tile.insertBefore(div, pulsometer)
+  }
+  else {
+    tile.appendChild(div)
+  }
 }
 
 let formatAvailability = function(data) {
