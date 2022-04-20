@@ -101,7 +101,7 @@ let hasLimitedEditionTiles = function() {
 
 let findLimitedEditionDataForTile = function(data, tile) {
   if (tile.classList.contains("displate-tile--limited-upcoming")) {
-    let title = tile.querySelector("h5").innerText
+    let title = tile.querySelector("h5").innerHTML
     return data.data.find(element => element.title == title)
   }
   else {
