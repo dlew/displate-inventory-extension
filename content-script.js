@@ -189,8 +189,8 @@ let config = { childList: true, subtree: true }
 let observer = new MutationObserver(function(mutationsList, observer) {
   let addedLimitedEditionTile = mutationsList.some(mutation => 
     [...mutation.addedNodes]
-      .filter(node => node instanceof Element 
-        && (node.classList.contains("displate-tile--limited")) || node.querySelector(".displate-tile--limited") != null)
+      .filter(node => node instanceof Element)
+      .filter(node => node.classList.contains("displate-tile--limited") || node.querySelector(".displate-tile--limited"))
       .length != 0
   )
 
