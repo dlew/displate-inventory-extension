@@ -7,7 +7,7 @@
     "128": "icon128.png"
   },
   "version": "1.0",
-  "manifest_version": 3,
+  "manifest_version": 2,
   "content_scripts": [
     {
       "matches": [ 
@@ -17,5 +17,8 @@
         "content-script.js"
       ]
     }
+  ],
+  "permissions": [
+    "https://sapi.displate.com/*"
   ]
 }
