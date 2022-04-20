@@ -11,7 +11,7 @@
   "content_scripts": [
     {
       "matches": [ 
-        "https://displate.com/limited-edition/*"
+        "https://displate.com/limited-edition*"
       ],
       "js": [
         "content-script.js"
