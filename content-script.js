@@ -56,10 +56,37 @@ let addInventoryDataToProductBox = function(productBox, data) {
   productBox.querySelector("h3").classList.remove("mb--15")
 }
 
+let selectedCountryCode = function() {
+  return document.getElementById("selectedCountryCode") ? document.getElementById("selectedCountryCode").value : ""
+}
+
 let queryLimitedEditionData = function() {
   // Try to match the URL exactly so we can just reuse cache
-  let miso = document.getElementById("selectedCountryCode") ? document.getElementById("selectedCountryCode").value : ""
-  return fetch("https://sapi.displate.com/artworks/limited?miso=" + miso)
+  return fetch("https://sapi.displate.com/artworks/limited?miso=" + selectedCountryCode())
+    .then(response => response.json())
+    .then(response => {
+      // If this is a specific Displate we're viewing, query that Displate's data directly
+      // (it may be more accurate if unreleased publicly)
+      let path = window.location.pathname
+      if (path.startsWith("/limited-edition/displate/")) {
+        let itemCollectionId = parseInt(path.substring(path.lastIndexOf('/') + 1))
+        return querySpecificLimitedEdition(itemCollectionId)
+          .then(leResponse => {
+            // Have to filter on title since the itemCollectionId might not be present in upcoming LEs
+            let newData = response.data.filter(item => item.title != leResponse.data.title)
+            newData.push(leResponse.data)
+            response.data = newData
+            return response
+          })
+      }
+      else {
+        return response
+      }
+    })
+}
+
+let querySpecificLimitedEdition = function(itemCollectionId) {
+  return fetch("https://sapi.displate.com/artworks/limited/" + itemCollectionId + "?miso=" + selectedCountryCode())
     .then(response => response.json())
 }
 
