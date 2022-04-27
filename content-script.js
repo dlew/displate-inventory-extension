@@ -96,7 +96,7 @@ let findLimitedEditionTiles = function() {
 }
 
 let hasLimitedEditionTiles = function() {
-  findLimitedEditionTiles().length != 0
+  return findLimitedEditionTiles().length != 0
 }
 
 let findLimitedEditionDataForTile = function(data, tile) {
