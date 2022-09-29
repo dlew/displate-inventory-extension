@@ -120,11 +120,8 @@ let removeTileBottomPadding = function(tile) {
 // Makes sold out tiles prettier (IMO)
 let reformatTile = function(tile, tileData) {
   if (tile.classList.contains("displate-tile--limited-upcoming")) {
-    // Make it so that clicking on an upcoming LE displays the image fullscreen
-    tile.href = tileData.images.main.url
+    // Make it so that clicking on an upcoming LE goes to the link
     tile["style"] = "pointer-events: auto"
-    // Need this to avoid router hijacking
-    tile.onclick = function() { window.open(tile.href) }
 
     removeTileBottomPadding(tile)
   }
