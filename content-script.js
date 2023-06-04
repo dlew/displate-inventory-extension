@@ -135,7 +135,7 @@ let reformatTile = function(tile, tileData) {
 
     let limitedEditionText = document.createElement("p")
     limitedEditionText.className = "text text--small text--bold"
-    limitedEditionText.innerText = "Limited Edition"
+    limitedEditionText.innerText = (tileData.edition.type === "ultra" ? 'Ultra ' : '') + "Limited Edition"
 
     let titleText = document.createElement("h5")
     titleText.className = "heading-5"
