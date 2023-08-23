@@ -47,7 +47,8 @@ let addInventoryDataToProductBox = function(productBox, data) {
   let pulsometer = productBox.querySelector(".editions__pulsometer")
 
   let nameText = document.createElement("h4")
-  nameText.className = "mb--15"
+	// Adding 'units' class to nameText for handling removal during forward navigation.
+  nameText.className = "mb--15 units"
   nameText.innerText = formatAvailability(productData)
 
   productBox.insertBefore(nameText, pulsometer)
@@ -179,6 +180,17 @@ let formatAvailability = function(data) {
 if (hasLimitedEditionTiles()) {
   loadAndShowLimitedEditionData()
 }
+
+// Event listener to handle back or forward navigation:
+// - Removes the 'added-inv-data' class to allow re-adding inventory data.
+// - Removes all elements with the 'units' class.
+window.addEventListener("popstate", function (event) {
+	let elements = document.querySelectorAll(".added-inv-data");
+	elements.forEach((element) => element.classList.remove("added-inv-data"));
+
+	let unitsElements = document.querySelectorAll(".units");
+	unitsElements.forEach((element) => element.parentNode.removeChild(element));
+});
 
 // Also, listen to changes to the DOM to find new LE tiles
 let targetNode = document.getElementById('d_app')
