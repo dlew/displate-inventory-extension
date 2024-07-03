@@ -12,6 +12,9 @@
  * 3. Once we have that, find all tiles and improve them.
  */ 
 
+let LE_LIST_SELECT = "[class^=LimitedEditionListSection_list__]";
+let PRODUCT_PAGE_BOX_SELECT = ".product-page__product-box";
+
 let loadAndShowLimitedEditionData = function () {
   return queryLimitedEditionData()
       .then(data => {
@@ -52,7 +55,7 @@ let loadAndShowLimitedEditionData = function () {
 
 let addInventoryDataToProductBox = function(productBox, data) {
   let title = productBox.querySelector("h3").innerText
-  let productData = data.data.find(element => element.title == title)
+  let productData = data.find(element => element.title == title)
 
   let pulsometer = productBox.querySelector(".editions__pulsometer")
 
@@ -87,12 +90,11 @@ let queryLimitedEditionData = function() {
             // Have to filter on title since the itemCollectionId might not be present in upcoming LEs
             let newData = response.data.filter(item => item.title != leResponse.data.title)
             newData.push(leResponse.data)
-            response.data = newData
-            return response
+            return newData
           })
       }
       else {
-        return response
+        return response.data
       }
     })
 }
@@ -103,10 +105,8 @@ let querySpecificLimitedEdition = function(itemCollectionId) {
 }
 
 let getProductPageProductBox = function() {
-  return document.querySelector(".product-page__product-box")
+  return document.querySelector(PRODUCT_PAGE_BOX_SELECT)
 }
-
-let LE_LIST_SELECT = "[class^=LimitedEditionListSection_list__]";
 
 let findLimitedEditionTiles = function() {
   return [...document.querySelectorAll(LE_LIST_SELECT + " > div")]
@@ -120,7 +120,7 @@ let findLimitedEditionDataForTile = function(data, tile) {
   // Unreleased LEs
   if (tile.querySelector('[class^=LimitedCountdown]')) {
     let title = tile.querySelector("h5").innerHTML
-    return data.data.find(element => element.title == title)
+    return data.find(element => element.title == title)
   }
   // Current or past LEs
   else {
@@ -128,7 +128,7 @@ let findLimitedEditionDataForTile = function(data, tile) {
     let url = new URL(tile.querySelector('a').href)
     let pathnames = url.pathname.split("/")
     let itemCollectionId = parseInt(pathnames[pathnames.length - 1])
-    return data.data.find(element => element.itemCollectionId == itemCollectionId)
+    return data.find(element => element.itemCollectionId == itemCollectionId)
   }
 }
 
@@ -187,6 +187,32 @@ let formatAvailability = function(data) {
   return data.edition.available + " / " + data.edition.size
 }
 
+let waitForElement = (selector) => {
+  return new Promise(resolve => {
+    // Does it already exist?
+    const targetElem = document.querySelector(selector);
+    if (targetElem) {
+      return resolve(targetElem);
+    }
+
+    // Wait for it to be added (eg by react)
+    const observer = new MutationObserver(mutations => {
+      const targetElem = document.querySelector(selector);
+      if (targetElem) {
+          // Clean up observer
+          observer.disconnect();
+          resolve(targetElem);
+      }
+    });
+
+    // Observe the body for all new elements
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  });
+}
+
 let updatedTiles = [];
 
 // Event listener to handle back or forward navigation:
@@ -200,31 +226,29 @@ window.addEventListener("popstate", function (event) {
   unitsElements.forEach((element) => element.parentNode.removeChild(element));
 });
 
-// Wait for LE list page to load
-if(hasLimitedEditionTiles()) {
-  // Also, listen to changes to the DOM to find new LE tiles
-  let targetNode = document.querySelector(LE_LIST_SELECT)
-  // All tiles are direct children of targetNode so setting subtree to false ensures only these are selected
-  let config = { childList: true, subtree: false }
-  let observer = new MutationObserver(function(mutationsList, observer) {
+let currentPath = new URL(window.location.href).pathname;
+
+// LE list page
+if (currentPath == "/limited-edition") {
+  waitForElement(LE_LIST_SELECT).then((leListElem) => {
+    // Initial content edit
+    loadAndShowLimitedEditionData();
+    // Edit all content added later too
+    // Also, listen to changes to the DOM to find new LE tiles
+    let observer = new MutationObserver(() => {
       loadAndShowLimitedEditionData()
-  })
-  observer.observe(targetNode, config)
+    })
+    observer.observe(
+      leListElem,
+      // All tiles are direct children of leListElem so setting subtree to false ensures only these are selected
+      { childList: true, subtree: false }
+    )
+  });
 }
 
-// Wait for Product page to finish loading
-if (window.location.href.includes("limited-edition/displate")) {
-  // Initially, there is nothing but scripts so the body is the only thing to hook onto
-  let targetNode = document.body
-  // All tiles are direct children of targetNode so setting subtree to false ensures only these are selected
-  let config = { childList: true, subtree: false }
-  let observer = new MutationObserver(function(mutationsList, observer) {
-    loadAndShowLimitedEditionData().then(pageUpdated => {
-      // Only needed one time for the product page
-      if(pageUpdated) {
-        observer.disconnect()
-      }
-    })
+// LE product page
+ else if (currentPath.startsWith("/limited-edition/displate")) {
+  waitForElement(PRODUCT_PAGE_BOX_SELECT).then(() => {
+    loadAndShowLimitedEditionData()
   })
-  observer.observe(targetNode, config)
 }
