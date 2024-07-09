@@ -3,6 +3,11 @@
 // (Going to refactor all of this to be TypeScript eventually, but no need to fix anything yet)
 
 import { fetchAllLimitedEditionData } from "./api";
+import {
+  addInventoryDataToProductBox,
+  addInventoryDataToTile,
+  reformatSoldOutTile,
+} from "./dom-manipulators";
 
 /**
  * This script improves the data shown for Displate Limited Editions.
@@ -54,23 +59,6 @@ let loadAndShowLimitedEditionData = function () {
   });
 };
 
-let addInventoryDataToProductBox = function (productBox, data) {
-  let title = productBox.querySelector("h3").innerText;
-  let productData = data.find((element) => element.title == title);
-
-  let pulsometer = productBox.querySelector(".editions__pulsometer");
-
-  let nameText = document.createElement("h4");
-  // Adding 'units' class to nameText for handling removal during forward navigation.
-  nameText.className = "mb--15 units";
-  nameText.innerText = formatAvailability(productData);
-
-  productBox.insertBefore(nameText, pulsometer);
-
-  // Remove extra padding from name
-  productBox.querySelector("h3").classList.remove("mb--15");
-};
-
 let getProductPageProductBox = function () {
   return document.querySelector(PRODUCT_PAGE_BOX_SELECT);
 };
@@ -104,63 +92,6 @@ let findLimitedEditionDataForTile = function (data, tile) {
     let itemCollectionId = parseInt(pathnames[pathnames.length - 1]);
     return data.find((element) => element.itemCollectionId == itemCollectionId);
   }
-};
-
-// Makes sold out tiles prettier (IMO)
-let reformatSoldOutTile = function (tile, tileData) {
-  let soldOutElem = tile.querySelector("[class^=SoldOut_container__]");
-  if (soldOutElem) {
-    // Remove sold out overlay
-    soldOutElem.remove();
-
-    // Re-add name
-    let nameDiv = document.createElement("div");
-    nameDiv.style.textAlign = "center";
-    nameDiv.style.marginTop = "12px";
-    nameDiv.style.fontWeight = "600";
-
-    let limitedEditionText = document.createElement("p");
-    limitedEditionText.style.fontSize = ".875rem";
-    limitedEditionText.style.lineHeight = "20px";
-    limitedEditionText.innerText =
-      (tileData.edition.type === "ultra" ? "Ultra " : "") + "Limited Edition";
-
-    let titleText = document.createElement("h5");
-    fontSize = "1.125rem";
-    lineHeight = "24px";
-    titleText.innerText = tileData.title;
-
-    nameDiv.appendChild(limitedEditionText);
-    nameDiv.appendChild(titleText);
-    tile.appendChild(nameDiv);
-  }
-};
-
-let addInventoryDataToTile = function (tile, tileData) {
-  let div = document.createElement("div");
-  div.style.textAlign = "center";
-
-  let p = document.createElement("p");
-  p.style.fontSize = ".875rem";
-  p.style.fontWeight = "600";
-  p.style.marginTop = "4px";
-  p.innerText = formatAvailability(tileData);
-
-  div.appendChild(p);
-
-  // Insert before pulsometer (if present), otherwise just append to end
-  let pulsometer = tile.querySelector(
-    "[class^=Pulsometer_container__], .editions__pulsometer",
-  );
-  if (pulsometer != null) {
-    tile.insertBefore(div, pulsometer);
-  } else {
-    tile.appendChild(div);
-  }
-};
-
-let formatAvailability = function (data) {
-  return data.edition.available + " / " + data.edition.size;
 };
 
 let waitForElement = (selector) => {
