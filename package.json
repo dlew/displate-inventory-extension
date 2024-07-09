@@ -1,6 +1,7 @@
 {
   "name": "displate-inventory-extension",
   "version": "2.0.0",
+  "type": "module",
   "scripts": {
     "prepare": "husky",
     "watch": "webpack --watch",
@@ -8,15 +9,20 @@
     "zip": "npm run build && rm -rf output && mkdir -p output && zip -r output/extension.zip dist/"
   },
   "lint-staged": {
+    "*.ts": "eslint",
     "**/*": "prettier --write --ignore-unknown"
   },
   "devDependencies": {
+    "@eslint/js": "^8.57.0",
+    "@types/eslint__js": "^8.42.3",
     "copy-webpack-plugin": "^12.0.2",
+    "eslint": "^8.57.0",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.7",
     "prettier": "3.3.2",
     "ts-loader": "^9.5.1",
     "typescript": "^5.5.3",
+    "typescript-eslint": "^7.16.0",
     "webpack": "^5.92.1",
     "webpack-cli": "^5.1.4"
   }
