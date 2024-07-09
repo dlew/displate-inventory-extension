@@ -2,12 +2,19 @@
   "name": "displate-inventory-extension",
   "version": "2.0.0",
   "scripts": {
+    "prepare": "husky",
     "watch": "webpack --watch",
     "build": "webpack",
     "zip": "npm run build && rm -rf output && mkdir -p output && zip -r output/extension.zip dist/"
   },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
   "devDependencies": {
     "copy-webpack-plugin": "^12.0.2",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.7",
+    "prettier": "3.3.2",
     "ts-loader": "^9.5.1",
     "typescript": "^5.5.3",
     "webpack": "^5.92.1",

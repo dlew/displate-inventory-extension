@@ -21,4 +21,4 @@ to see changes there.)
 
 ## Release
 
-Run `$ npm run zip` and upload `output/extension.zip` to the various stores. 
+Run `$ npm run zip` and upload `output/extension.zip` to the various stores.
