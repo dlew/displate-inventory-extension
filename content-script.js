@@ -12,37 +12,46 @@
  * 3. Once we have that, find all tiles and improve them.
  */ 
 
+let LE_LIST_SELECT = "[class^=LimitedEditionListSection_list__]";
+let PRODUCT_SLIDER_MORE_TILES = ".product-slider--more .displate-tile--limited";
+let PRODUCT_PAGE_BOX_SELECT = ".product-page__product-box";
+
 let loadAndShowLimitedEditionData = function () {
-  queryLimitedEditionData()
-      .then(data =>  {
-        // Find the product box and add to that
-        let productBox = document.querySelector(".product-page__product-box")
+  return queryLimitedEditionData()
+      .then(data => {
+        // Product page: Find the product box and add to that
+        let productBox = getProductPageProductBox()
         if (productBox != null) {
           if (!productBox.classList.contains("added-inv-data")) {
             addInventoryDataToProductBox(productBox, data)
 
             // Make sure we don't double-add data
             productBox.classList.add("added-inv-data")
+
+            return true;
           }
         }
-
-        // Find tiles and add to them
-        findLimitedEditionTiles().forEach(tile => {
-          if (!tile.classList.contains("added-inv-data")) {
-            let tileData = findLimitedEditionDataForTile(data, tile)
-            reformatTile(tile, tileData)
-            addInventoryDataToTile(tile, tileData)
-
-            // Make sure we don't double-add data
-            tile.classList.add("added-inv-data")
+        // List page & more slider on PDP: Find tiles and add to them
+        let tiles = findLimitedEditionTiles();
+        tiles.forEach(tile => {
+          // Do not update a tile twice since all tiles will be looped over every time more are added
+          if(updatedTiles.filter(elem => elem === tile).length) {
+            return;
           }
+
+          let tileData = findLimitedEditionDataForTile(data, tile)
+          reformatSoldOutTile(tile, tileData)
+          addInventoryDataToTile(tile, tileData)
+
+          updatedTiles.push(tile);
         })
+        return true;
       })
 }
 
 let addInventoryDataToProductBox = function(productBox, data) {
   let title = productBox.querySelector("h3").innerText
-  let productData = data.data.find(element => element.title == title)
+  let productData = data.find(element => element.title == title)
 
   let pulsometer = productBox.querySelector(".editions__pulsometer")
 
@@ -58,7 +67,8 @@ let addInventoryDataToProductBox = function(productBox, data) {
 }
 
 let selectedCountryCode = function() {
-  return document.getElementById("selectedCountryCode") ? document.getElementById("selectedCountryCode").value : ""
+  // TODO: An element with the selectedCountryCode as ID no longer exists and country code is no longer in the source. Seems US is good enough.
+  return "us";
 }
 
 let queryLimitedEditionData = function() {
@@ -76,12 +86,11 @@ let queryLimitedEditionData = function() {
             // Have to filter on title since the itemCollectionId might not be present in upcoming LEs
             let newData = response.data.filter(item => item.title != leResponse.data.title)
             newData.push(leResponse.data)
-            response.data = newData
-            return response
+            return newData
           })
       }
       else {
-        return response
+        return response.data
       }
     })
 }
@@ -91,80 +100,78 @@ let querySpecificLimitedEdition = function(itemCollectionId) {
     .then(response => response.json())
 }
 
+let getProductPageProductBox = function() {
+  return document.querySelector(PRODUCT_PAGE_BOX_SELECT)
+}
+
 let findLimitedEditionTiles = function() {
-  return [...document.querySelectorAll(".displate-tile--limited")]
-    .filter(element => !element.classList.contains(".displate-tile--limited-placeholder"))
+  return [...document.querySelectorAll(`${LE_LIST_SELECT} > div , ${PRODUCT_SLIDER_MORE_TILES}`)]
 }
 
 let hasLimitedEditionTiles = function() {
-  return findLimitedEditionTiles().length != 0
+  return findLimitedEditionTiles().length
 }
 
 let findLimitedEditionDataForTile = function(data, tile) {
-  if (tile.classList.contains("displate-tile--limited-upcoming")) {
+  // Unreleased LEs
+  if (tile.querySelector('[class^=LimitedCountdown]') || tile.classList.contains('displate-tile--limited-upcoming')) {
     let title = tile.querySelector("h5").innerHTML
-    return data.data.find(element => element.title == title)
+    return data.find(element => element.title == title)
   }
+  // Current or past LEs
   else {
-    let url = new URL(tile.href)
+    // Bug: sometimes this querySelector returns null and then throws an error. But on page refresh, it does not happen. Race condition?
+    let url = new URL(tile.href || tile.querySelector('a').href)
     let pathnames = url.pathname.split("/")
     let itemCollectionId = parseInt(pathnames[pathnames.length - 1])
-    return data.data.find(element => element.itemCollectionId == itemCollectionId)
+    return data.find(element => element.itemCollectionId == itemCollectionId)
   }
-}
-
-let removeTileBottomPadding = function(tile) {
-  // Remove bottom padding (looks better with inventory data)
-  tile.querySelector("h5").parentNode.classList.remove("mb--15")
 }
 
 // Makes sold out tiles prettier (IMO)
-let reformatTile = function(tile, tileData) {
-  if (tile.classList.contains("displate-tile--limited-upcoming")) {
-    // Make it so that clicking on an upcoming LE goes to the link
-    tile["style"] = "pointer-events: auto"
-
-    removeTileBottomPadding(tile)
-  }
-  if (tile.classList.contains("displate-tile--limited-soldout")) {
-    // Remove sold out class
-    tile.classList.remove("displate-tile--limited-soldout")
+let reformatSoldOutTile = function(tile, tileData) {
+  let soldOutElem = tile.querySelector('[class^=SoldOut_container__]')
+  if (soldOutElem) {
+    // Remove sold out overlay
+    soldOutElem.remove()
 
     // Re-add name
     let nameDiv = document.createElement("div")
-    nameDiv.className = "text--center mt--20"
+    nameDiv.style.textAlign = 'center'
+    nameDiv.style.marginTop = '12px'
+    nameDiv.style.fontWeight = '600';
 
     let limitedEditionText = document.createElement("p")
-    limitedEditionText.className = "text text--small text--bold"
+    limitedEditionText.style.fontSize = '.875rem';
+    limitedEditionText.style.lineHeight = '20px';
     limitedEditionText.innerText = (tileData.edition.type === "ultra" ? 'Ultra ' : '') + "Limited Edition"
 
     let titleText = document.createElement("h5")
-    titleText.className = "heading-5"
+    fontSize = '1.125rem';
+    lineHeight = '24px';
     titleText.innerText = tileData.title
 
     nameDiv.appendChild(limitedEditionText)
     nameDiv.appendChild(titleText)
     tile.appendChild(nameDiv)
   }
-  else {
-    removeTileBottomPadding(tile)
-  }
 }
 
 let addInventoryDataToTile = function(tile, tileData) {
   let div = document.createElement("div")
-  div.classList.add("text--center")
+  div.style.textAlign = 'center'
 
   let p = document.createElement("p")
-  p.className = "text--small text--bold"
+  p.style.fontSize = '.875rem';
+  p.style.fontWeight = '600';
+  p.style.marginTop = '4px';
   p.innerText = formatAvailability(tileData)
 
   div.appendChild(p)
 
   // Insert before pulsometer (if present), otherwise just append to end
-  let pulsometer = tile.querySelector(".editions__pulsometer")
+  let pulsometer = tile.querySelector("[class^=Pulsometer_container__], .editions__pulsometer")
   if (pulsometer != null) {
-    div.classList.add("mb--15")
     tile.insertBefore(div, pulsometer)
   }
   else {
@@ -176,10 +183,33 @@ let formatAvailability = function(data) {
   return data.edition.available + " / " + data.edition.size
 }
 
-// If the page starts with LE tiles, great!
-if (hasLimitedEditionTiles()) {
-  loadAndShowLimitedEditionData()
+let waitForElement = (selector) => {
+  return new Promise(resolve => {
+    // Does it already exist?
+    const targetElem = document.querySelector(selector);
+    if (targetElem) {
+      return resolve(targetElem);
+    }
+
+    // Wait for it to be added (eg by react)
+    const observer = new MutationObserver(mutations => {
+      const targetElem = document.querySelector(selector);
+      if (targetElem) {
+          // Clean up observer
+          observer.disconnect();
+          resolve(targetElem);
+      }
+    });
+
+    // Observe the body for all new elements
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  });
 }
+
+let updatedTiles = [];
 
 // Event listener to handle back or forward navigation:
 // - Removes the 'added-inv-data' class to allow re-adding inventory data.
@@ -192,19 +222,33 @@ window.addEventListener("popstate", function (event) {
   unitsElements.forEach((element) => element.parentNode.removeChild(element));
 });
 
-// Also, listen to changes to the DOM to find new LE tiles
-let targetNode = document.getElementById('d_app')
-let config = { childList: true, subtree: true }
-let observer = new MutationObserver(function(mutationsList, observer) {
-  let addedLimitedEditionTile = mutationsList.some(mutation => 
-    [...mutation.addedNodes]
-      .filter(node => node instanceof Element)
-      .filter(node => node.classList.contains("displate-tile--limited") || node.querySelector(".displate-tile--limited"))
-      .length != 0
-  )
+let currentPath = new URL(window.location.href).pathname;
+let isListPage = currentPath == "/limited-edition";
+let isProductPage = currentPath.startsWith("/limited-edition/displate");
 
-  if (addedLimitedEditionTile) {
+// LE list page
+if (isListPage) {
+  waitForElement(LE_LIST_SELECT).then((leListElem) => {
+    // Initial content edit
+    loadAndShowLimitedEditionData();
+    // Edit all content added later too
+    // Also, listen to changes to the DOM to find new LE tiles
+    let observer = new MutationObserver(() => {
+      loadAndShowLimitedEditionData()
+    })
+    observer.observe(
+      leListElem,
+      // All tiles are direct children of leListElem so setting subtree to false ensures only these are selected
+      { childList: true, subtree: false }
+    )
+  });
+}
+// LE product page
+else if (currentPath.startsWith("/limited-edition/displate")) {
+  waitForElement(PRODUCT_PAGE_BOX_SELECT).then(() => {
     loadAndShowLimitedEditionData()
-  }
-})
-observer.observe(targetNode, config)
+  })
+  waitForElement(PRODUCT_SLIDER_MORE_TILES).then(() => {
+    loadAndShowLimitedEditionData()
+  })
+}
