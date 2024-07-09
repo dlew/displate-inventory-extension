@@ -1,3 +1,6 @@
+// @ts-nocheck
+// (Going to refactor all of this to be TypeScript eventually, but no need to fix anything yet)
+
 /**
  * This script improves the data shown for Displate Limited Editions.
  * 
