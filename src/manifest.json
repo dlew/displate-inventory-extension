@@ -7,24 +7,18 @@
       "strict_min_version": "109.0"
     }
   },
-  "icons": { 
-    "16": "icon16.png",
-    "48": "icon48.png",
-    "128": "icon128.png"
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "version": "1.5.0",
   "manifest_version": 3,
   "content_scripts": [
     {
-      "matches": [ 
-        "https://displate.com/limited-edition*"
-      ],
-      "js": [
-        "content-script.js"
-      ]
+      "matches": ["https://displate.com/limited-edition*"],
+      "js": ["content-script.js"]
     }
   ],
-  "host_permissions": [
-    "https://sapi.displate.com/*"
-  ]
+  "host_permissions": ["https://sapi.displate.com/*"]
 }
