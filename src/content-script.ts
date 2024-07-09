@@ -8,6 +8,7 @@ import {
   addInventoryDataToTile,
   reformatSoldOutTile,
 } from "./dom-manipulators";
+import { getItemCollectionIdFromTile } from "./dom-query";
 
 /**
  * This script improves the data shown for Displate Limited Editions.
@@ -49,7 +50,10 @@ let loadAndShowLimitedEditionData = function () {
         return;
       }
 
-      let tileData = findLimitedEditionDataForTile(data, tile);
+      const itemCollectionId = getItemCollectionIdFromTile(tile);
+      const tileData = data.find(
+        (le) => le.itemCollectionId == itemCollectionId,
+      );
       reformatSoldOutTile(tile, tileData);
       addInventoryDataToTile(tile, tileData);
 
@@ -69,29 +73,6 @@ let findLimitedEditionTiles = function () {
       `${LE_LIST_SELECT} > div , ${PRODUCT_SLIDER_MORE_TILES}`,
     ),
   ];
-};
-
-let hasLimitedEditionTiles = function () {
-  return findLimitedEditionTiles().length;
-};
-
-let findLimitedEditionDataForTile = function (data, tile) {
-  // Unreleased LEs
-  if (
-    tile.querySelector("[class^=LimitedCountdown]") ||
-    tile.classList.contains("displate-tile--limited-upcoming")
-  ) {
-    let title = tile.querySelector("h5").innerHTML;
-    return data.find((element) => element.title == title);
-  }
-  // Current or past LEs
-  else {
-    // Bug: sometimes this querySelector returns null and then throws an error. But on page refresh, it does not happen. Race condition?
-    let url = new URL(tile.href || tile.querySelector("a").href);
-    let pathnames = url.pathname.split("/");
-    let itemCollectionId = parseInt(pathnames[pathnames.length - 1]);
-    return data.find((element) => element.itemCollectionId == itemCollectionId);
-  }
 };
 
 let waitForElement = (selector) => {
