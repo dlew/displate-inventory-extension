@@ -1,5 +1,8 @@
+/* eslint-disable */
 // @ts-nocheck
 // (Going to refactor all of this to be TypeScript eventually, but no need to fix anything yet)
+
+import { fetchAllLimitedEditionData } from "./api";
 
 /**
  * This script improves the data shown for Displate Limited Editions.
@@ -20,7 +23,7 @@ let PRODUCT_SLIDER_MORE_TILES = ".product-slider--more .displate-tile--limited";
 let PRODUCT_PAGE_BOX_SELECT = ".product-page__product-box";
 
 let loadAndShowLimitedEditionData = function () {
-  return queryLimitedEditionData().then((data) => {
+  return fetchAllLimitedEditionData().then((data) => {
     // Product page: Find the product box and add to that
     let productBox = getProductPageProductBox();
     if (productBox != null) {
@@ -66,50 +69,6 @@ let addInventoryDataToProductBox = function (productBox, data) {
 
   // Remove extra padding from name
   productBox.querySelector("h3").classList.remove("mb--15");
-};
-
-let selectedCountryCode = function () {
-  // TODO: An element with the selectedCountryCode as ID no longer exists and country code is no longer in the source. Seems US is good enough.
-  return "us";
-};
-
-let queryLimitedEditionData = function () {
-  // Try to match the URL exactly so we can just reuse cache
-  return fetch(
-    "https://sapi.displate.com/artworks/limited?miso=" + selectedCountryCode(),
-  )
-    .then((response) => response.json())
-    .then((response) => {
-      // If this is a specific Displate we're viewing, query that Displate's data directly
-      // (it may be more accurate if unreleased publicly)
-      let path = window.location.pathname;
-      if (path.startsWith("/limited-edition/displate/")) {
-        let itemCollectionId = parseInt(
-          path.substring(path.lastIndexOf("/") + 1),
-        );
-        return querySpecificLimitedEdition(itemCollectionId).then(
-          (leResponse) => {
-            // Have to filter on title since the itemCollectionId might not be present in upcoming LEs
-            let newData = response.data.filter(
-              (item) => item.title != leResponse.data.title,
-            );
-            newData.push(leResponse.data);
-            return newData;
-          },
-        );
-      } else {
-        return response.data;
-      }
-    });
-};
-
-let querySpecificLimitedEdition = function (itemCollectionId) {
-  return fetch(
-    "https://sapi.displate.com/artworks/limited/" +
-      itemCollectionId +
-      "?miso=" +
-      selectedCountryCode(),
-  ).then((response) => response.json());
 };
 
 let getProductPageProductBox = function () {
