@@ -1,4 +1,42 @@
 import { LimitedEdition } from "./model/limited-edition";
+import {
+  findLimitedEditionTiles,
+  findProductPageProductBox,
+  getItemCollectionIdFromTile,
+} from "./dom-query";
+import { isNil } from "lodash";
+
+const updatedTiles: Element[] = [];
+
+export function reformatPage(document: Document, data: LimitedEdition[]) {
+  // Product page: Find the product box and add to that
+  const productBox = findProductPageProductBox(document);
+  if (!isNil(productBox)) {
+    if (!productBox.classList.contains("added-inv-data")) {
+      addInventoryDataToProductBox(productBox, data);
+
+      // Make sure we don't double-add data
+      productBox.classList.add("added-inv-data");
+    }
+  }
+
+  // List page & more slider on PDP: Find tiles and add to them
+  const tiles = findLimitedEditionTiles(document);
+  tiles.forEach((tile) => {
+    // Do not update a tile twice since all tiles will be looped over every time more are added
+    if (updatedTiles.includes(tile)) {
+      return;
+    }
+
+    const itemCollectionId = getItemCollectionIdFromTile(tile);
+    const tileData = data.find((le) => le.itemCollectionId == itemCollectionId);
+    if (!isNil(tileData)) {
+      reformatSoldOutTile(tile, tileData);
+      addInventoryDataToTile(tile, tileData);
+      updatedTiles.push(tile);
+    }
+  });
+}
 
 // Makes sold-out tiles prettier (IMO)
 export function reformatSoldOutTile(tile: Element, tileData: LimitedEdition) {
