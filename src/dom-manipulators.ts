@@ -4,14 +4,13 @@ import {
   findProductPageProductBox,
   getItemCollectionIdFromTile,
 } from "./dom-query";
-import { isNil } from "lodash";
 
 const updatedTiles: Element[] = [];
 
 export function reformatPage(document: Document, data: LimitedEdition[]) {
   // Product page: Find the product box and add to that
   const productBox = findProductPageProductBox(document);
-  if (!isNil(productBox)) {
+  if (productBox !== null) {
     if (!productBox.classList.contains("added-inv-data")) {
       addInventoryDataToProductBox(productBox, data);
 
@@ -30,7 +29,7 @@ export function reformatPage(document: Document, data: LimitedEdition[]) {
 
     const itemCollectionId = getItemCollectionIdFromTile(tile);
     const tileData = data.find((le) => le.itemCollectionId == itemCollectionId);
-    if (!isNil(tileData)) {
+    if (tileData !== undefined) {
       reformatSoldOutTile(tile, tileData);
       addInventoryDataToTile(tile, tileData);
       updatedTiles.push(tile);

@@ -1,4 +1,3 @@
-import { isNil } from "lodash";
 import { PageElement } from "./model/page-element";
 
 function selectorForPageElement(pageElement: PageElement): string {
@@ -58,7 +57,7 @@ export function getItemCollectionIdFromTile(tile: Element): number | undefined {
   const href =
     tile.getAttribute("href") ?? tile.querySelector("a")?.getAttribute("href");
 
-  if (isNil(href)) {
+  if (href === null || href === undefined) {
     return undefined;
   }
 
