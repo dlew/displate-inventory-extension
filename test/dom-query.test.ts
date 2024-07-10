@@ -1,5 +1,9 @@
-import { getItemCollectionIdFromTile } from "../src/dom-query";
+import {
+  findLimitedEditionTiles,
+  getItemCollectionIdFromTile,
+} from "../src/dom-query";
 import { JSDOM } from "jsdom";
+import * as fs from "node:fs";
 
 const releasedLimitedEditionTile =
   '<div class="LimitedEdtionItem_container__u5Hys"><a class="LimitedEdtionItem_link__fvSlp" href="/limited-edition/displate/7376525"></a><div class="LimitedEdtionItem_container__u5Hys"><img alt="Purring Fantasy" class="LimitedEdtionItem_limitedImage__lhLmN" src="https://static.displate.com/560x784/limited/2024-06-26/3886aae9337ced2664b7df2a5e285f33_3afbd87579cb9d16fdd6e3e642ddf33c.jpg"></div><div class="LimitedEditionDescription_container__x8KSI"><p class="LimitedEditionDescription_text___laaJ"> Limited Edition</p><h5 class="LimitedEditionDescription_title___zsBy">Purring Fantasy</h5></div><div class="Pulsometer_container__YNKll"><div><span class="Pulsometer_pulsometerText__Rh1pM">24 days left</span><br> <span class="Pulsometer_pulsometerTextTiny__rZtIW">or until 1000 pieces are sold</span></div></div></div>';
@@ -21,7 +25,41 @@ function getHtmlAsDomElement(text: string): Element {
   return dom.window.document.documentElement;
 }
 
+function getFileAsDocument(path: string): Document {
+  const text = fs.readFileSync(path);
+  const dom = new JSDOM(text);
+  return dom.window.document;
+}
+
 describe("DOM query", () => {
+  test("findLimitedEditionTiles() on all LEs page", () => {
+    const document = getFileAsDocument("test/limited-editions.html");
+    const tiles = findLimitedEditionTiles(document);
+    expect(tiles.length).toEqual(37);
+    const itemCollectionIds = tiles.map((tile) =>
+      getItemCollectionIdFromTile(tile),
+    );
+    expect(itemCollectionIds).toStrictEqual([
+      7376525, 7376515, 7368056, 7376546, 7376541, 7108428, 7344305, 7344298,
+      7331808, 7292064, 7292072, 7289671, 7313087, 7292079, 7282997, 7292026,
+      7282927, 7282918, 7274760, 7235082, 7235059, 7235067, 7222278, 7108438,
+      7222270, 6846361, 7154557, 7213144, 7154426, 7108407, 7154560, 7108421,
+      7154555, 7154552, 7108402, 7108331, 7047609,
+    ]);
+  });
+
+  test("findLimitedEditionTiles() on PDP page", () => {
+    const document = getFileAsDocument("test/limited-edition-pdp.html");
+    const tiles = findLimitedEditionTiles(document);
+    expect(tiles.length).toEqual(4);
+    const itemCollectionIds = tiles.map((tile) =>
+      getItemCollectionIdFromTile(tile),
+    );
+    expect(itemCollectionIds).toStrictEqual([
+      7376541, 7376546, 7376525, 7376515,
+    ]);
+  });
+
   test("getItemCollectionIdFromTile()", () => {
     expect(
       getItemCollectionIdFromTile(
