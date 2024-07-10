@@ -1,5 +1,6 @@
 import {
   findLimitedEditionTiles,
+  findProductPageProductBox,
   getItemCollectionIdFromTile,
 } from "../src/dom-query";
 import { JSDOM } from "jsdom";
@@ -58,6 +59,18 @@ describe("DOM query", () => {
     expect(itemCollectionIds).toStrictEqual([
       7376541, 7376546, 7376525, 7376515,
     ]);
+  });
+
+  test("findProductPageProductBox()", () => {
+    const document = getFileAsDocument("test/limited-edition-pdp.html");
+    const pdpBox = findProductPageProductBox(document);
+    expect(pdpBox).toBeDefined();
+
+    const documentMissingPdpBox = getFileAsDocument(
+      "test/limited-editions.html",
+    );
+    const missingPdpBox = findProductPageProductBox(documentMissingPdpBox);
+    expect(missingPdpBox).toBeNull();
   });
 
   test("getItemCollectionIdFromTile()", () => {
