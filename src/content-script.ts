@@ -8,7 +8,10 @@ import {
   addInventoryDataToTile,
   reformatSoldOutTile,
 } from "./dom-manipulators";
-import { getItemCollectionIdFromTile } from "./dom-query";
+import {
+  findLimitedEditionTiles,
+  getItemCollectionIdFromTile,
+} from "./dom-query";
 
 /**
  * This script improves the data shown for Displate Limited Editions.
@@ -43,7 +46,7 @@ let loadAndShowLimitedEditionData = function () {
       }
     }
     // List page & more slider on PDP: Find tiles and add to them
-    let tiles = findLimitedEditionTiles();
+    let tiles = findLimitedEditionTiles(document);
     tiles.forEach((tile) => {
       // Do not update a tile twice since all tiles will be looped over every time more are added
       if (updatedTiles.filter((elem) => elem === tile).length) {
@@ -65,14 +68,6 @@ let loadAndShowLimitedEditionData = function () {
 
 let getProductPageProductBox = function () {
   return document.querySelector(PRODUCT_PAGE_BOX_SELECT);
-};
-
-let findLimitedEditionTiles = function () {
-  return [
-    ...document.querySelectorAll(
-      `${LE_LIST_SELECT} > div , ${PRODUCT_SLIDER_MORE_TILES}`,
-    ),
-  ];
 };
 
 let waitForElement = (selector) => {
