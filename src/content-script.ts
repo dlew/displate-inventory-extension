@@ -10,6 +10,7 @@ import {
 } from "./dom-manipulators";
 import {
   findLimitedEditionTiles,
+  findProductPageProductBox,
   getItemCollectionIdFromTile,
 } from "./dom-query";
 
@@ -34,7 +35,7 @@ let PRODUCT_PAGE_BOX_SELECT = ".product-page__product-box";
 let loadAndShowLimitedEditionData = function () {
   return fetchAllLimitedEditionData().then((data) => {
     // Product page: Find the product box and add to that
-    let productBox = getProductPageProductBox();
+    let productBox = findProductPageProductBox(document);
     if (productBox != null) {
       if (!productBox.classList.contains("added-inv-data")) {
         addInventoryDataToProductBox(productBox, data);
@@ -64,10 +65,6 @@ let loadAndShowLimitedEditionData = function () {
     });
     return true;
   });
-};
-
-let getProductPageProductBox = function () {
-  return document.querySelector(PRODUCT_PAGE_BOX_SELECT);
 };
 
 let waitForElement = (selector) => {
