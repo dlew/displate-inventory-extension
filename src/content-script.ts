@@ -1,5 +1,5 @@
 import { fetchAllLimitedEditionData } from "./api";
-import { reformatPage } from "./dom-manipulators";
+import { clearFormatting, reformatPage } from "./dom-manipulators";
 import { waitForPageElement } from "./dom-query";
 import { PageElement } from "./model/page-element";
 
@@ -57,11 +57,7 @@ async function loadAndShowLimitedEditionData() {
 // - Removes the 'added-inv-data' class to allow re-adding inventory data.
 // - Removes all elements with the 'units' class.
 window.addEventListener("popstate", function () {
-  const elements = document.querySelectorAll(".added-inv-data");
-  elements.forEach((element) => element.classList.remove("added-inv-data"));
-
-  const unitsElements = document.querySelectorAll(".units");
-  unitsElements.forEach((element) => element.parentNode?.removeChild(element));
+  clearFormatting(document);
 });
 
 // Start the script
