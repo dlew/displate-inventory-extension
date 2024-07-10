@@ -1,5 +1,7 @@
 import { fetchAllLimitedEditionData } from "./api";
 import { reformatPage } from "./dom-manipulators";
+import { waitForPageElement } from "./dom-query";
+import { PageElement } from "./model/page-element";
 
 /**
  * This script improves the data shown for Displate Limited Editions.
@@ -14,61 +16,12 @@ import { reformatPage } from "./dom-manipulators";
  * 2. Upon detection, fetch the latest Limited Edition data.
  * 3. Once we have that, find all tiles and improve them.
  */
-
-const LE_LIST_SELECT = "[class^=LimitedEditionListSection_list__]";
-const PRODUCT_SLIDER_MORE_TILES =
-  ".product-slider--more .displate-tile--limited";
-const PRODUCT_PAGE_BOX_SELECT = ".product-page__product-box";
-
-async function loadAndShowLimitedEditionData() {
-  const data = await fetchAllLimitedEditionData();
-  reformatPage(document, data);
-}
-
-function waitForElement(selector: string): Promise<Element> {
-  return new Promise((resolve) => {
-    // Does it already exist?
-    const targetElem = document.querySelector(selector);
-    if (targetElem) {
-      return resolve(targetElem);
-    }
-
-    // Wait for it to be added (e.g. by react)
-    const observer = new MutationObserver(() => {
-      const targetElem = document.querySelector(selector);
-      if (targetElem) {
-        // Clean up observer
-        observer.disconnect();
-        resolve(targetElem);
-      }
-    });
-
-    // Observe the body for all new elements
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-  });
-}
-
-// Event listener to handle back or forward navigation:
-// - Removes the 'added-inv-data' class to allow re-adding inventory data.
-// - Removes all elements with the 'units' class.
-window.addEventListener("popstate", function () {
-  const elements = document.querySelectorAll(".added-inv-data");
-  elements.forEach((element) => element.classList.remove("added-inv-data"));
-
-  const unitsElements = document.querySelectorAll(".units");
-  unitsElements.forEach((element) => element.parentNode?.removeChild(element));
-});
-
-const currentPath = new URL(window.location.href).pathname;
-const isListPage = currentPath == "/limited-edition";
-
 async function main() {
+  const currentPath = new URL(window.location.href).pathname;
+
   // LE list page
-  if (isListPage) {
-    const leListElem = await waitForElement(LE_LIST_SELECT);
+  if (currentPath == "/limited-edition") {
+    const leListElem = await waitForPageElement(PageElement.LimitedEditionList);
 
     // Initial content edit
     await loadAndShowLimitedEditionData();
@@ -88,13 +41,30 @@ async function main() {
   // LE product page
   else if (currentPath.startsWith("/limited-edition/displate")) {
     await Promise.all([
-      waitForElement(PRODUCT_PAGE_BOX_SELECT),
-      waitForElement(PRODUCT_SLIDER_MORE_TILES),
+      waitForPageElement(PageElement.ProductPageBox),
+      waitForPageElement(PageElement.ProductSliderTiles),
     ]);
     await loadAndShowLimitedEditionData();
   }
 }
 
+async function loadAndShowLimitedEditionData() {
+  const data = await fetchAllLimitedEditionData();
+  reformatPage(document, data);
+}
+
+// Event listener to handle back or forward navigation:
+// - Removes the 'added-inv-data' class to allow re-adding inventory data.
+// - Removes all elements with the 'units' class.
+window.addEventListener("popstate", function () {
+  const elements = document.querySelectorAll(".added-inv-data");
+  elements.forEach((element) => element.classList.remove("added-inv-data"));
+
+  const unitsElements = document.querySelectorAll(".units");
+  unitsElements.forEach((element) => element.parentNode?.removeChild(element));
+});
+
+// Start the script
 (async () => {
   await main();
 })();
