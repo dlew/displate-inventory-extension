@@ -119,3 +119,20 @@ export function addInventoryDataToProductBox(
 function formatAvailability(data: LimitedEdition) {
   return `${data.edition.available} / ${data.edition.size}`;
 }
+
+/**
+ * - Removes the 'added-inv-data' class to allow re-adding inventory data.
+ * - Removes all elements with the 'units' class.
+ */
+export function clearFormatting(document: Document) {
+  // Remove the 'added-inv-data' class to allow re-adding inventory data.
+  const elements = document.querySelectorAll(".added-inv-data");
+  elements.forEach((element) => element.classList.remove("added-inv-data"));
+
+  // Remove elements we added ourselves
+  const unitsElements = document.querySelectorAll(".units");
+  unitsElements.forEach((element) => element.parentNode?.removeChild(element));
+
+  // Reset which tiles have had content added
+  updatedTiles.length = 0;
+}
