@@ -3,16 +3,7 @@
 // (Going to refactor all of this to be TypeScript eventually, but no need to fix anything yet)
 
 import { fetchAllLimitedEditionData } from "./api";
-import {
-  addInventoryDataToProductBox,
-  addInventoryDataToTile,
-  reformatSoldOutTile,
-} from "./dom-manipulators";
-import {
-  findLimitedEditionTiles,
-  findProductPageProductBox,
-  getItemCollectionIdFromTile,
-} from "./dom-query";
+import { reformatPage } from "./dom-manipulators";
 
 /**
  * This script improves the data shown for Displate Limited Editions.
@@ -32,40 +23,10 @@ let LE_LIST_SELECT = "[class^=LimitedEditionListSection_list__]";
 let PRODUCT_SLIDER_MORE_TILES = ".product-slider--more .displate-tile--limited";
 let PRODUCT_PAGE_BOX_SELECT = ".product-page__product-box";
 
-let loadAndShowLimitedEditionData = function () {
-  return fetchAllLimitedEditionData().then((data) => {
-    // Product page: Find the product box and add to that
-    let productBox = findProductPageProductBox(document);
-    if (productBox != null) {
-      if (!productBox.classList.contains("added-inv-data")) {
-        addInventoryDataToProductBox(productBox, data);
-
-        // Make sure we don't double-add data
-        productBox.classList.add("added-inv-data");
-
-        return true;
-      }
-    }
-    // List page & more slider on PDP: Find tiles and add to them
-    let tiles = findLimitedEditionTiles(document);
-    tiles.forEach((tile) => {
-      // Do not update a tile twice since all tiles will be looped over every time more are added
-      if (updatedTiles.filter((elem) => elem === tile).length) {
-        return;
-      }
-
-      const itemCollectionId = getItemCollectionIdFromTile(tile);
-      const tileData = data.find(
-        (le) => le.itemCollectionId == itemCollectionId,
-      );
-      reformatSoldOutTile(tile, tileData);
-      addInventoryDataToTile(tile, tileData);
-
-      updatedTiles.push(tile);
-    });
-    return true;
-  });
-};
+async function loadAndShowLimitedEditionData() {
+  const data = await fetchAllLimitedEditionData();
+  reformatPage(document, data);
+}
 
 let waitForElement = (selector) => {
   return new Promise((resolve) => {
