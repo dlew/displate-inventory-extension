@@ -1,17 +1,26 @@
-const limitedEditionTilesSelector = [
-  "[class^=LimitedEdtionItem_container__]", // New limited edition tile selector (typo included)
-  ".displate-tile--limited", // Old limited edition tile selector (some pages still use it)
-].join(", ");
+const newLimitedEditionListSelector =
+  "[class^=LimitedEditionListSection_list__]";
+
+// There are multiple nested containers, so this will not uniquely identify tiles at their top level
+const newLimitedEditionTileDetector = "[class^=LimitedEdtionItem_container__]"; // Typo intended
+
+const oldLimitedEditionTileSelector = ".displate-tile--limited"; // Some pages still use this
 
 const productPageProductBoxSelector = ".product-page__product-box";
 
-const allLimitedEditionElementsSelector = [
-  limitedEditionTilesSelector,
+const limitedEditionTileSelector = [
+  `${newLimitedEditionListSelector} > ${newLimitedEditionTileDetector}`,
+  oldLimitedEditionTileSelector,
+].join(", ");
+
+const allLimitedEditionElementsDetector = [
+  newLimitedEditionTileDetector,
+  oldLimitedEditionTileSelector,
   productPageProductBoxSelector,
 ].join(", ");
 
 export function hasLimitedEditionElements(document: Document): boolean {
-  return document.querySelector(allLimitedEditionElementsSelector) !== null;
+  return document.querySelector(allLimitedEditionElementsDetector) !== null;
 }
 
 export function observeLimitedEditionElementChanges(
@@ -43,11 +52,11 @@ function isNodeALimitedEditionElement(node: Node) {
     return false;
   }
 
-  return node.querySelector(allLimitedEditionElementsSelector) !== null;
+  return node.querySelector(allLimitedEditionElementsDetector) !== null;
 }
 
 export function findLimitedEditionTiles(document: Document) {
-  return Array.from(document.querySelectorAll(limitedEditionTilesSelector));
+  return Array.from(document.querySelectorAll(limitedEditionTileSelector));
 }
 
 export function findProductPageProductBox(document: Document) {
