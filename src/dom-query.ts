@@ -1,56 +1,56 @@
-import { PageElement } from "./model/page-element";
+const limitedEditionTilesSelector = [
+  "[class^=LimitedEdtionItem_container__]", // New limited edition tile selector (typo included)
+  ".displate-tile--limited", // Old limited edition tile selector (some pages still use it)
+].join(", ");
 
-function selectorForPageElement(pageElement: PageElement): string {
-  switch (pageElement) {
-    case PageElement.LimitedEditionList:
-      return "[class^=LimitedEditionListSection_list__]";
-    case PageElement.ProductSliderTiles:
-      return ".product-slider--more .displate-tile--limited";
-    case PageElement.ProductPageBox:
-      return ".product-page__product-box";
-  }
+const productPageProductBoxSelector = ".product-page__product-box";
+
+const allLimitedEditionElementsSelector = [
+  limitedEditionTilesSelector,
+  productPageProductBoxSelector,
+].join(", ");
+
+export function hasLimitedEditionElements(document: Document): boolean {
+  return document.querySelector(allLimitedEditionElementsSelector) !== null;
 }
 
-export function waitForPageElement(pageElement: PageElement): Promise<Element> {
-  return new Promise((resolve) => {
-    const selector = selectorForPageElement(pageElement);
+export function observeNewLimitedEditions(
+  document: Document,
+  callback: () => Promise<void>,
+) {
+  const observer = new MutationObserver(async (mutations) => {
+    const addedTiles = mutations.some((mutation) => {
+      return Array.from(mutation.addedNodes).some((node) => {
+        return isNodeALimitedEditionElement(node);
+      });
+    });
 
-    // Does it already exist?
-    const targetElem = document.querySelector(selector);
-    if (targetElem) {
-      return resolve(targetElem);
+    if (addedTiles) {
+      await callback();
     }
+  });
 
-    // Wait for it to be added (e.g. by react)
-    const observer = new MutationObserver(() => {
-      const targetElem = document.querySelector(selector);
-      if (targetElem) {
-        // Clean up observer
-        observer.disconnect();
-        resolve(targetElem);
-      }
-    });
-
-    // Observe the body for all new elements
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
+  // Observe the body for all new elements
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
   });
 }
 
+function isNodeALimitedEditionElement(node: Node) {
+  if (!(node instanceof Element)) {
+    return false;
+  }
+
+  return node.querySelector(allLimitedEditionElementsSelector) !== null;
+}
+
 export function findLimitedEditionTiles(document: Document) {
-  return Array.from(
-    document.querySelectorAll(
-      `${selectorForPageElement(PageElement.LimitedEditionList)} > div , ${selectorForPageElement(PageElement.ProductSliderTiles)}`,
-    ),
-  );
+  return Array.from(document.querySelectorAll(limitedEditionTilesSelector));
 }
 
 export function findProductPageProductBox(document: Document) {
-  return document.querySelector(
-    selectorForPageElement(PageElement.ProductPageBox),
-  );
+  return document.querySelector(productPageProductBoxSelector);
 }
 
 export function getItemCollectionIdFromTile(tile: Element): number | undefined {
