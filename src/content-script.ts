@@ -1,8 +1,8 @@
 import { fetchAllLimitedEditionData } from "./api";
-import { clearFormatting, reformatPage } from "./dom-manipulators";
+import { reformatPage } from "./dom-manipulators";
 import {
   hasLimitedEditionElements,
-  observeNewLimitedEditions,
+  observeLimitedEditionElementChanges,
 } from "./dom-query";
 
 /**
@@ -19,18 +19,13 @@ import {
  * 3. Once we have that, find all tiles and improve them.
  */
 async function main() {
-  // Event listener to handle back or forward navigation
-  window.addEventListener("popstate", function () {
-    clearFormatting(document);
-  });
-
   // Check if page already has LE elements, if so then show LE data
   if (hasLimitedEditionElements(document)) {
     await loadAndShowLimitedEditionData();
   }
 
   // Displate's site dynamically loads content as pages load & during navigation
-  observeNewLimitedEditions(document, async () => {
+  observeLimitedEditionElementChanges(document, async () => {
     await loadAndShowLimitedEditionData();
   });
 }

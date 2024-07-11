@@ -5,34 +5,24 @@ import {
   getItemCollectionIdFromTile,
 } from "./dom-query";
 
-const updatedTiles: Element[] = [];
+// Class that indicates the element we added that contains availability info
+const extensionAvailabilityTextClass = "extension-availability-info";
 
 export function reformatPage(document: Document, data: LimitedEdition[]) {
   // Product page: Find the product box and add to that
   const productBox = findProductPageProductBox(document);
   if (productBox !== null) {
-    if (!productBox.classList.contains("added-inv-data")) {
-      addInventoryDataToProductBox(productBox, data);
-
-      // Make sure we don't double-add data
-      productBox.classList.add("added-inv-data");
-    }
+    addInventoryDataToProductBox(productBox, data);
   }
 
   // List page & more slider on PDP: Find tiles and add to them
   const tiles = findLimitedEditionTiles(document);
   tiles.forEach((tile) => {
-    // Do not update a tile twice since all tiles will be looped over every time more are added
-    if (updatedTiles.includes(tile)) {
-      return;
-    }
-
     const itemCollectionId = getItemCollectionIdFromTile(tile);
     const tileData = data.find((le) => le.itemCollectionId == itemCollectionId);
     if (tileData !== undefined) {
       reformatSoldOutTile(tile, tileData);
       addInventoryDataToTile(tile, tileData);
-      updatedTiles.push(tile);
     }
   });
 }
@@ -40,57 +30,65 @@ export function reformatPage(document: Document, data: LimitedEdition[]) {
 // Makes sold-out tiles prettier (IMO)
 export function reformatSoldOutTile(tile: Element, tileData: LimitedEdition) {
   const soldOutElem = tile.querySelector("[class^=SoldOut_container__]");
-  if (soldOutElem) {
-    // Remove sold out overlay
-    soldOutElem.remove();
-
-    // Re-add name
-    const nameDiv = document.createElement("div");
-    nameDiv.style.textAlign = "center";
-    nameDiv.style.marginTop = "12px";
-    nameDiv.style.fontWeight = "600";
-
-    const limitedEditionText = document.createElement("p");
-    limitedEditionText.style.fontSize = ".875rem";
-    limitedEditionText.style.lineHeight = "20px";
-    limitedEditionText.innerText =
-      (tileData.edition.type === "ultra" ? "Ultra " : "") + "Limited Edition";
-
-    const titleText = document.createElement("h5");
-    titleText.style.fontSize = "1.125rem";
-    titleText.style.lineHeight = "24px";
-    titleText.innerText = tileData.title;
-
-    nameDiv.appendChild(limitedEditionText);
-    nameDiv.appendChild(titleText);
-    tile.appendChild(nameDiv);
+  if (!soldOutElem) {
+    return;
   }
+
+  // Remove sold out overlay
+  soldOutElem.remove();
+
+  // Re-add name
+  const nameDiv = document.createElement("div");
+  nameDiv.style.textAlign = "center";
+  nameDiv.style.marginTop = "12px";
+  nameDiv.style.fontWeight = "600";
+
+  const limitedEditionText = document.createElement("p");
+  limitedEditionText.style.fontSize = ".875rem";
+  limitedEditionText.style.lineHeight = "20px";
+  limitedEditionText.innerText =
+    (tileData.edition.type === "ultra" ? "Ultra " : "") + "Limited Edition";
+
+  const titleText = document.createElement("h5");
+  titleText.style.fontSize = "1.125rem";
+  titleText.style.lineHeight = "24px";
+  titleText.innerText = tileData.title;
+
+  nameDiv.appendChild(limitedEditionText);
+  nameDiv.appendChild(titleText);
+  tile.appendChild(nameDiv);
 }
 
 export function addInventoryDataToTile(
   tile: Element,
   tileData: LimitedEdition,
 ) {
-  const div = document.createElement("div");
-  div.style.textAlign = "center";
+  let p = tile.querySelector(
+    `.${extensionAvailabilityTextClass}`,
+  ) as HTMLParagraphElement;
+  if (p === null) {
+    p = document.createElement("p");
+    p.className = extensionAvailabilityTextClass;
+    p.style.fontSize = ".875rem";
+    p.style.fontWeight = "600";
+    p.style.marginTop = "4px";
 
-  const p = document.createElement("p");
-  p.style.fontSize = ".875rem";
-  p.style.fontWeight = "600";
-  p.style.marginTop = "4px";
-  p.innerText = formatAvailability(tileData);
+    const div = document.createElement("div");
+    div.style.textAlign = "center";
+    div.appendChild(p);
 
-  div.appendChild(p);
-
-  // Insert before pulsometer (if present), otherwise just append to end
-  const pulsometer = tile.querySelector(
-    "[class^=Pulsometer_container__], .editions__pulsometer",
-  );
-  if (pulsometer != null) {
-    tile.insertBefore(div, pulsometer);
-  } else {
-    tile.appendChild(div);
+    // Insert before pulsometer (if present), otherwise just append to end
+    const pulsometer = tile.querySelector(
+      "[class^=Pulsometer_container__], .editions__pulsometer",
+    );
+    if (pulsometer != null) {
+      tile.insertBefore(div, pulsometer);
+    } else {
+      tile.appendChild(div);
+    }
   }
+
+  p.innerText = formatAvailability(tileData);
 }
 
 export function addInventoryDataToProductBox(
@@ -99,39 +97,28 @@ export function addInventoryDataToProductBox(
 ) {
   const productBoxHeader = productBox.querySelector("h3")!;
 
+  // Figure out which LE we're looking at
   const title = productBoxHeader.innerText;
   const productData = data.find((element) => element.title == title)!;
 
-  const pulsometer = productBox.querySelector(".editions__pulsometer");
+  // Find or create the availability text
+  let availabilityText = productBox.querySelector(
+    `.${extensionAvailabilityTextClass}`,
+  ) as HTMLHeadingElement;
+  if (availabilityText === null) {
+    availabilityText = document.createElement("h4");
+    availabilityText.className = `mb--15 ${extensionAvailabilityTextClass}`;
 
-  const nameText = document.createElement("h4");
-  // Adding 'units' class to nameText for handling removal during forward navigation.
-  nameText.className = "mb--15 units";
-  nameText.innerText = formatAvailability(productData);
+    const pulsometer = productBox.querySelector(".editions__pulsometer");
+    productBox.insertBefore(availabilityText, pulsometer);
 
-  productBox.insertBefore(nameText, pulsometer);
+    // Remove extra padding from name
+    productBoxHeader.classList.remove("mb--15");
+  }
 
-  // Remove extra padding from name
-  productBoxHeader.classList.remove("mb--15");
+  availabilityText.innerText = formatAvailability(productData);
 }
 
 function formatAvailability(data: LimitedEdition) {
   return `${data.edition.available} / ${data.edition.size}`;
-}
-
-/**
- * - Removes the 'added-inv-data' class to allow re-adding inventory data.
- * - Removes all elements with the 'units' class.
- */
-export function clearFormatting(document: Document) {
-  // Remove the 'added-inv-data' class to allow re-adding inventory data.
-  const elements = document.querySelectorAll(".added-inv-data");
-  elements.forEach((element) => element.classList.remove("added-inv-data"));
-
-  // Remove elements we added ourselves
-  const unitsElements = document.querySelectorAll(".units");
-  unitsElements.forEach((element) => element.parentNode?.removeChild(element));
-
-  // Reset which tiles have had content added
-  updatedTiles.length = 0;
 }

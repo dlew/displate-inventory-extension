@@ -14,18 +14,19 @@ export function hasLimitedEditionElements(document: Document): boolean {
   return document.querySelector(allLimitedEditionElementsSelector) !== null;
 }
 
-export function observeNewLimitedEditions(
+export function observeLimitedEditionElementChanges(
   document: Document,
   callback: () => Promise<void>,
 ) {
   const observer = new MutationObserver(async (mutations) => {
-    const addedTiles = mutations.some((mutation) => {
-      return Array.from(mutation.addedNodes).some((node) => {
-        return isNodeALimitedEditionElement(node);
-      });
-    });
+    // If any LE elements were added OR removed, then execute the callback
+    const changedElements = mutations.some((mutation) =>
+      Array.from(mutation.addedNodes)
+        .concat(Array.from(mutation.removedNodes))
+        .some((node) => isNodeALimitedEditionElement(node)),
+    );
 
-    if (addedTiles) {
+    if (changedElements) {
       await callback();
     }
   });
