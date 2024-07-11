@@ -29,13 +29,24 @@ export function reformatPage(document: Document, data: LimitedEdition[]) {
 
 // Makes sold-out tiles prettier (IMO)
 export function reformatSoldOutTile(tile: Element, tileData: LimitedEdition) {
+  // New sold out overlay
   const soldOutElem = tile.querySelector("[class^=SoldOut_container__]");
-  if (!soldOutElem) {
+
+  // Old sold out overlay (can remove once they get rid of old setup)
+  const soldOutClass = tile.classList.contains(
+    "displate-tile--limited-soldout",
+  );
+
+  if (!soldOutElem && !soldOutClass) {
     return;
   }
 
-  // Remove sold out overlay
-  soldOutElem.remove();
+  // Remove sold out overlay (new or old)
+  if (soldOutElem) {
+    soldOutElem.remove();
+  } else {
+    tile.classList.remove("displate-tile--limited-soldout");
+  }
 
   // Re-add name
   const nameDiv = document.createElement("div");

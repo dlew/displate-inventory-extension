@@ -52,7 +52,10 @@ function isNodeALimitedEditionElement(node: Node) {
     return false;
   }
 
-  return node.querySelector(allLimitedEditionElementsDetector) !== null;
+  return (
+    node.classList.contains("displate-tile--limited") || // Need this to support old LE page
+    node.querySelector(allLimitedEditionElementsDetector) !== null
+  );
 }
 
 export function findLimitedEditionTiles(document: Document) {
