@@ -6,7 +6,9 @@ Icon by [MD Badsha Meah](https://freeicons.io/profile/3335) on [freeicons.io](ht
 
 ## Development
 
-First, get the project compiling:
+First, you have to use a Linux/Mac operating system with [nvm](https://github.com/nvm-sh/nvm) installed.
+
+Then, you can get the project compiling:
 
 ```
 $ nvm use
