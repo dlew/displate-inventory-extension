@@ -6,7 +6,7 @@
     "prepare": "husky",
     "watch": "webpack --watch",
     "build": "webpack",
-    "zip": "npm run build && rm -rf output && mkdir -p output && zip -r output/extension.zip dist/",
+    "zip": "npm run build && rm -rf output && mkdir -p output && cd dist && zip -r ../output/extension.zip *",
     "test": "jest"
   },
   "lint-staged": {
