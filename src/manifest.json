@@ -3,7 +3,7 @@
   "description": "Improves information/display for Displate limited editions",
   "browser_specific_settings": {
     "gecko": {
-      "id": "better-inventory-for-displate@displate.com",
+      "id": "{700b4604-ce40-45a4-9f4d-5d52fbae491d}",
       "strict_min_version": "109.0"
     }
   },
