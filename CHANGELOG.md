@@ -1,5 +1,9 @@
 # Changelog
 
+## Next Version
+
+- Removed support for old Displate listing page (it used to be accessible via breadcrumbs, but is no longer).
+
 ## 2.0.0 (2024-07-15)
 
 - Completely rewrote the extension's source code in TypeScript & Node.
