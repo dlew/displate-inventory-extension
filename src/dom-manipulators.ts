@@ -42,6 +42,14 @@ export function addInventoryDataToTile(
   tile: Element,
   tileData: LimitedEdition,
 ) {
+  // Modify pulsometer (if present)
+  const pulsometer = findPulsometer(tile);
+  if (pulsometer != null) {
+    pulsometer.innerText = formatPulsometerText(tileData);
+    return;
+  }
+
+  // If we didn't find pulsometer, add our own element (but only once)
   let p = tile.querySelector(
     `.${extensionAvailabilityTextClass}`,
   ) as HTMLParagraphElement;
@@ -56,17 +64,8 @@ export function addInventoryDataToTile(
     div.style.textAlign = "center";
     div.appendChild(p);
 
-    // Insert before pulsometer (if present), otherwise just append to end
-    const pulsometer = tile.querySelector(
-      "[class^=Pulsometer_container__], .editions__pulsometer",
-    );
-    if (pulsometer != null) {
-      tile.insertBefore(div, pulsometer);
-    } else {
-      tile.appendChild(div);
-    }
+    tile.appendChild(div);
   }
-
   p.innerText = formatAvailability(tileData);
 }
 
@@ -80,7 +79,14 @@ export function addInventoryDataToProductBox(
   const title = productBoxHeader.innerText;
   const productData = data.find((element) => element.title == title)!;
 
-  // Find or create the availability text
+  // Modify pulsometer (if present & not showing "sold out")
+  const pulsometer = findPulsometer(productBox);
+  if (pulsometer != null && productData.edition.available != 0) {
+    pulsometer.innerText = formatPulsometerText(productData);
+    return;
+  }
+
+  // Find or create our custom availability text otherwise
   let availabilityText = productBox.querySelector(
     `.${extensionAvailabilityTextClass}`,
   ) as HTMLHeadingElement;
@@ -98,6 +104,22 @@ export function addInventoryDataToProductBox(
   availabilityText.innerText = formatAvailability(productData);
 }
 
+function findPulsometer(inside: Element): HTMLSpanElement | undefined {
+  const pulsometer = inside.querySelector(
+    "[class^=Pulsometer_container__], .editions__pulsometer",
+  );
+  if (pulsometer != null) {
+    return pulsometer.querySelector(
+      "[class^=Pulsometer_pulsometerText__], span.text--bold",
+    ) as HTMLSpanElement;
+  }
+  return undefined;
+}
+
 function formatAvailability(data: LimitedEdition) {
   return `${data.edition.available} / ${data.edition.size}`;
+}
+
+function formatPulsometerText(data: LimitedEdition) {
+  return `${formatAvailability(data)} pieces left`;
 }
