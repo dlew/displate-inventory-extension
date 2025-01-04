@@ -3,6 +3,7 @@
 ## Next Version
 
 - Removed support for old Displate listing page (it used to be accessible via breadcrumbs, but is no longer).
+- Bugfix: don't duplicate name/type info for sold out LEs.
 
 ## 2.0.0 (2024-07-15)
 

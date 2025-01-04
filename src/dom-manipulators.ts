@@ -21,14 +21,14 @@ export function reformatPage(document: Document, data: LimitedEdition[]) {
     const itemCollectionId = getItemCollectionIdFromTile(tile);
     const tileData = data.find((le) => le.itemCollectionId == itemCollectionId);
     if (tileData !== undefined) {
-      reformatSoldOutTile(tile, tileData);
+      reformatSoldOutTile(tile);
       addInventoryDataToTile(tile, tileData);
     }
   });
 }
 
 // Makes sold-out tiles prettier (IMO)
-export function reformatSoldOutTile(tile: Element, tileData: LimitedEdition) {
+export function reformatSoldOutTile(tile: Element) {
   // New sold out overlay
   const soldOutElem = tile.querySelector("[class^=SoldOut_container__]");
   if (soldOutElem === null) {
@@ -36,27 +36,6 @@ export function reformatSoldOutTile(tile: Element, tileData: LimitedEdition) {
   }
 
   soldOutElem.remove();
-
-  // Re-add name
-  const nameDiv = document.createElement("div");
-  nameDiv.style.textAlign = "center";
-  nameDiv.style.marginTop = "12px";
-  nameDiv.style.fontWeight = "600";
-
-  const limitedEditionText = document.createElement("p");
-  limitedEditionText.style.fontSize = ".875rem";
-  limitedEditionText.style.lineHeight = "20px";
-  limitedEditionText.innerText =
-    (tileData.edition.type === "ultra" ? "Ultra " : "") + "Limited Edition";
-
-  const titleText = document.createElement("h5");
-  titleText.style.fontSize = "1.125rem";
-  titleText.style.lineHeight = "24px";
-  titleText.innerText = tileData.title;
-
-  nameDiv.appendChild(limitedEditionText);
-  nameDiv.appendChild(titleText);
-  tile.appendChild(nameDiv);
 }
 
 export function addInventoryDataToTile(
