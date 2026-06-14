@@ -1,3 +1,5 @@
+_Notice: This extension stopped working due to Displate page changes, but I no longer want to maintain the project. As such, the extension is no longer in development & has been taken down. If you want to get it working again, you have my blessing._
+
 # displate-inventory-extension
 
 Browser extension that improves information/display for Displate limited editions.
